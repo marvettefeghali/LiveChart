@@ -1,0 +1,22 @@
+var chartData = [ 
+    ['Language', 'Speakers (in millions)'],
+    ['German',  6.85],
+    ['French',  1.66],
+    ['Italian', 0.316],
+    ['Romansh', 0.0791]
+];
+
+var requestParams = request.body;
+
+//Add an id to identify the message published over the socket
+var publishResponse = function(channel, data, request) {
+   var message = {"result": data};
+   //Add a default id to identify the message published over the channel
+    message["id"] = "chart";
+   publish(channel, message);
+}
+
+publishResponse("responseChannel", chartData, request);
+
+//Return data when someone calls api over websocket
+return chartData;

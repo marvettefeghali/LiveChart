@@ -120,7 +120,7 @@ angular
 				                        var data = JSON.parse(message.data);
 				                        if (data.result == "connected.") {
 					                        _socketSession = data.id;
-					                        if (ready) {
+					                        if(ready) {
 						                        ready.resolve();
 					                        }
 				                        }
