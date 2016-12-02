@@ -17,6 +17,11 @@
     <script src="/RTChart/native/PubSubClient.js"></script>
   </head>
   <script>
+
+    var token = "UjkyNTI2OTk1RQ==";
+    var subscribeChannel = "responseChannel";
+    var scriptName = "RTChart/native/data";
+    
     //Instantiate Chart with configuration
     google.setOnLoadCallback(loadChart);
    
@@ -25,12 +30,12 @@
      var wrapper;
  
      var instantiateWsClient = function() {
-        var client = new PubSubClient("UjkyNTI2OTk1RQ==");
-    	scriptr = new Scriptr({pubsub:client, token:"UjkyNTI2OTk1RQ=="});
+        var client = new PubSubClient(token);
+    	scriptr = new Scriptr({pubsub:client, token: token});
        
        
         var wsDto = {
-        	method: "RTChart/native/data", // the API (script) to execute on your scriptr.io account
+        	method: scriptName, // the API (script) to execute on your scriptr.io account
         	params: {}, // the message to send. Should be {msg:some_stringified_object_or_string}
         	onSuccess: consumeData, // success callback
         	onFailure: consumeData // failure callback
@@ -40,7 +45,7 @@
         scriptr.send(wsDto);
         
         //Start subscribing to the data sent over the channel to update chart
-        scriptr.subscribe("responseChannel", subscribeCallback);
+        scriptr.subscribe(subscribeChannel, subscribeCallback);
       	
      }
      var subscribeCallback = function(message) {
