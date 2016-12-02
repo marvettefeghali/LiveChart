@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <link rel="stylesheet"href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" />
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src='https://www.google.com/jsapi?autoload={"modules":[{ "name":"visualization","version":"1", 
+                 "packages":["charteditor", "corechart"]
+                 }] 
+                 }'>
+    </script>
+    
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular-cookies.js"></script>
+    <script src="//cdn.rawgit.com/gdi2290/angular-websocket/v1.0.9/angular-websocket.min.js"></script>
+    
+    <script src="/RTChart/wsProvider.js"></script>
+  </head>
+  <script>
+    var myApp = angular.module('myApp', ["WsClient"]);
+    
+    //Configure the socket connection
+    myApp.config(["wsClientProvider",function (wsClientProvider) {
+      wsClientProvider.setToken("UjkyNTI2OTk1RQ==");
+      wsClientProvider.setPublishChannel("requestChannel");
+      wsClientProvider.setSubscribeChannel("responseChannel");
+    }]);
+    
+    //Chart Controller
+    myApp.controller('chartCtrl', function($scope, $controller, wsClient) {
+     
+      var wrapper;
+      var vm = this;
+      vm.waiting = true;
+      
+      vm.init = function() {
+        //Instantiate Chart with configuration
+        google.setOnLoadCallback(loadChart());
+        wsClient.onReady.then(function(){ 
+          wsClient.call("RTChart/data", {}, "chartInit").then(function(data, response){
+            consumeData(data)
+          });
+          //Subscribe to socket messages with id chart
+          wsClient.subscribe("chart", consumeData);
+        })
+        
+      }
+      
+      var consumeData =  function(data, response) {
+        vm.waiting = false;
+        //Set the data of the chart
+         setDataSource(data)
+        console.log("resolve call promise", data)
+      }
+      
+      var setDataSource = function (data) {
+        wrapper.setDataTable(data);
+        if(wrapper.getChartType() != null) {
+          wrapper.draw();
+        }
+      }
+      
+      var drawChart = function () {
+        wrapper.draw();
+      }
+      
+      var loadChart = function() {
+        var chart_content = {  
+           "containerId":"scriptrChart",
+           "options":{  
+              "title":"Chart Title",
+              "hAxis":{  
+                 "title":"Time of Day",
+                 "textStyle":{  
+                    "fontSize":12,
+                    "color":"#EE8300",
+                    "bold":true,
+                    "italic":false
+                 },
+                 "titleTextStyle":{  
+                    "fontSize":14,
+                    "color":"#777",
+                    "bold":true,
+                    "italic":false
+                 },
+                 "useFormatFromData":true,
+                 "minValue":null,
+                 "maxValue":null,
+                 "viewWindow":null,
+                 "viewWindowMode":null
+              },
+              "vAxis":{  
+                 "title":"Axis title",
+                 "textStyle":{  
+                    "fontSize":12,
+                    "color":"#EE8300",
+                    "bold":false,
+                    "italic":false
+                 },
+                 "titleTextStyle":{  
+                    "fontSize":14,
+                    "color":"#777",
+                    "bold":true,
+                    "italic":false
+                 }
+              },
+              "colors":[  
+                 "#EE8300",
+                 "#777"
+              ],
+              "vAxes":[  
+                 {  
+                    "title":null,
+                    "minValue":null,
+                    "maxValue":null,
+                    "useFormatFromData":true,
+                    "viewWindow":{  
+                       "max":null,
+                       "min":null
+                    }
+                 },
+                 {  
+                    "useFormatFromData":true,
+                    "viewWindow":{  
+                       "max":null,
+                       "min":null
+                    },
+                    "minValue":null,
+                    "maxValue":null
+                 }
+              ],
+              "legacyScatterChartLabels":true,
+              "isStacked":false,
+              "booleanRole":"certainty",
+              "legend":"right",
+              "width":600,
+              "height":371
+           },
+           "state":{  
+
+           },
+           "view":{  
+              "columns":null,
+              "rows":null
+           },
+           "isDefaultVisualization":true,
+           "chartType": "ColumnChart"
+        };
+        wrapper = new google.visualization.ChartWrapper(chart_content);
+      }
+	});
+  </script>
+  <body ng-app="myApp">
+    <div ng-controller="chartCtrl as vm" ng-init="vm.init()">
+      <div ng-show="vm.waiting == false" id="scriptrChart"></div>
+      <div ng-show="vm.waiting == true" class='loading-google-frame' style="padding: 100px;">
+        <i class='fa fa-spinner fa-spin fa-3x'></i>
+      </div>
+    </div>
+  </body>
+</html>
